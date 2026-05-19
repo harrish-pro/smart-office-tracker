@@ -10,6 +10,13 @@ INSERT INTO users (username, password)
 VALUES (?, ?)
 """, ("admin", "1234"))
 
+
+conn.commit()
+
+conn.close()
+
+print("User Added Successfully")
+
 conn.commit()
 
 conn.close()

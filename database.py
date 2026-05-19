@@ -2,34 +2,75 @@ import sqlite3
 
 conn = sqlite3.connect("database.db")
 
-# TASK TABLE
-conn.execute('''
+cursor = conn.cursor()
+
+# TASKS TABLE
+cursor.execute("""
+
 CREATE TABLE IF NOT EXISTS tasks(
-id INTEGER PRIMARY KEY AUTOINCREMENT,
-title TEXT,
-deadline TEXT,
-priority TEXT,
-status TEXT
-)
-''')
 
-# USER TABLE
-conn.execute('''
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    username TEXT,
+
+    title TEXT,
+
+    deadline TEXT,
+
+    priority TEXT,
+
+    status TEXT
+
+)
+
+""")
+
+# USERS TABLE
+cursor.execute("""
+
 CREATE TABLE IF NOT EXISTS users(
-id INTEGER PRIMARY KEY AUTOINCREMENT,
-username TEXT,
-password TEXT
+
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    username TEXT UNIQUE,
+
+    password TEXT,
+
+    role TEXT
+
 )
-''')
 
-# DEFAULT LOGIN
-conn.execute("""
+""")
 
-INSERT INTO users
-(username, password)
+# INSERT USERS
+cursor.execute("""
+
+INSERT OR IGNORE INTO users
+(username, password, role)
 
 VALUES
-('admin', '1234')
+('hari', '1234', 'employee')
+
+""")
+
+cursor.execute("""
+
+INSERT OR IGNORE INTO users
+(username, password, role)
+
+VALUES
+('arun', '1234', 'employee')
+
+""")
+
+# ADMIN USER
+cursor.execute("""
+
+INSERT OR IGNORE INTO users
+(username, password, role)
+
+VALUES
+('admin', '1234', 'admin')
 
 """)
 
