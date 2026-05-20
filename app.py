@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 from flask import redirect, session, send_file
+from openai import OpenAI
 
 import sqlite3
 import pandas as pd
@@ -11,7 +12,9 @@ import matplotlib.pyplot as plt
 import os
 
 app = Flask(__name__)
-
+client = OpenAI(
+    api_key="YOUR_API_KEY"
+)
 app.secret_key = "smartoffice"
 
 # CREATE FOLDERS
@@ -392,7 +395,114 @@ def logout():
     session.pop("role", None)
 
     return redirect("/login")
+    # CHATBOT PAGE
+@app.route("/chatbot")
+def chatbot_page():
 
+    if "user" not in session:
+
+        return redirect("/login")
+
+    return render_template("chatbot.html")
+# AI CHATBOT
+@app.route("/chatbot", methods=["POST"])
+def chatbot():
+
+    if "user" not in session:
+
+        return redirect("/login")
+
+    question = request.form["question"].lower()
+
+    conn = sqlite3.connect("database.db")
+
+    # GET TASKS
+
+    if session["role"] == "admin":
+
+        data = conn.execute(
+
+            "SELECT * FROM tasks"
+
+        ).fetchall()
+
+    else:
+
+        data = conn.execute("""
+
+        SELECT * FROM tasks
+
+        WHERE username=?
+
+        """,
+
+        (session["user"],)
+
+        ).fetchall()
+
+    conn.close()
+
+    # ANALYTICS
+
+    total = len(data)
+
+    completed = 0
+
+    pending = 0
+
+    high = 0
+
+    for task in data:
+
+        if task[5] == "Completed":
+
+            completed += 1
+
+        else:
+
+            pending += 1
+
+        if task[4] == "High":
+
+            high += 1
+
+    # AI RESPONSES
+
+    answer = "I could not understand your question."
+
+    if "pending" in question:
+
+        answer = f"You currently have {pending} pending tasks."
+
+    elif "completed" in question:
+
+        answer = f"You completed {completed} tasks."
+
+    elif "high priority" in question:
+
+        answer = f"You have {high} high priority tasks."
+
+    elif "productivity" in question:
+
+        if pending > completed:
+
+            answer = "Productivity is low. Try completing pending tasks."
+
+        else:
+
+            answer = "Good productivity performance."
+
+    elif "total" in question:
+
+        answer = f"You currently have {total} total tasks."
+
+    return render_template(
+
+        "chatbot.html",
+
+        answer=answer
+
+    )
 
 # EXPORT REPORT
 @app.route("/report")
